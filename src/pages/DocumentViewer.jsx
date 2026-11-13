@@ -5,6 +5,15 @@ import { api, getToken } from "../api";
 import Badge from "../components/Badge";
 import { useApp } from "../context/AppContext";
 import { hasPermission } from "../lib/roleAccess";
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL || ""
+).replace(/\/+$/, "");
+
+function getBackendUrl(url) {
+  return /^https?:\/\//i.test(url)
+    ? url
+    : `${API_BASE_URL}${url}`;
+}
 
 export default function DocumentViewer() {
   const { id } = useParams();
@@ -90,7 +99,9 @@ export default function DocumentViewer() {
   };
 
   const download = () => {
-    fetch(`${fileUrl}?download=1`, { headers: { Authorization: `Bearer ${getToken()}` } })
+    fetch(getBackendUrl(`${fileUrl}?download=1`), {
+  headers: { Authorization: `Bearer ${getToken()}` },
+})
       .then((r) => {
         if (!r.ok) throw new Error("Download not permitted");
         return r.blob();
@@ -290,7 +301,9 @@ export default function DocumentViewer() {
 function AuthImage({ src, alt }) {
   const [url, setUrl] = useState("");
   useEffect(() => {
-    fetch(src, { headers: { Authorization: `Bearer ${getToken()}` } })
+    fetch(getBackendUrl(src), {
+  headers: { Authorization: `Bearer ${getToken()}` },
+})
       .then((r) => r.blob())
       .then((b) => setUrl(URL.createObjectURL(b)));
   }, [src]);
@@ -304,7 +317,9 @@ function AuthAudio({ src }) {
   useEffect(() => {
     let active = true;
     let objectUrl = "";
-    fetch(src, { headers: { Authorization: `Bearer ${getToken()}` } })
+    fetch(getBackendUrl(src), {
+  headers: { Authorization: `Bearer ${getToken()}` },
+})
       .then((response) => {
         if (!response.ok) throw new Error("Audio preview is not available");
         return response.blob();
@@ -329,7 +344,9 @@ function AuthText({ src }) {
   const [error, setError] = useState("");
   useEffect(() => {
     let active = true;
-    fetch(src, { headers: { Authorization: `Bearer ${getToken()}` } })
+    fetch(getBackendUrl(src), {
+  headers: { Authorization: `Bearer ${getToken()}` },
+})
       .then((response) => {
         if (!response.ok) throw new Error("Transcript preview is not available");
         return response.text();
@@ -350,11 +367,9 @@ function AuthPdf({ src, title }) {
     let active = true;
     let objectUrl = "";
 
-    fetch(src, {
-      headers: {
-        Authorization: `Bearer ${getToken()}`,
-      },
-    })
+    fetch(getBackendUrl(src), {
+  headers: { Authorization: `Bearer ${getToken()}` },
+})
       .then((response) => {
         if (!response.ok) {
           throw new Error("PDF preview could not be loaded");
