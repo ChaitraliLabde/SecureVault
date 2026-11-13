@@ -1,12 +1,27 @@
+# Dependencies
 node_modules/
+
+# Build files
+dist/
+
+# Environment variables
 .env
 .env.*
 !.env.example
-server/.env
-dist/
-.DS_Store
-.git/
-backups/
-server/storage/
+
+# Local database and storage
 server/data/
+server/storage/
+
+# Uploaded files
 uploads/
+
+# Old backups
+backups/
+src.zip
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
