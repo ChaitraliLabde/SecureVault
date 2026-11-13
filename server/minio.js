@@ -15,7 +15,7 @@ import {
 const endpoint = process.env.MINIO_ENDPOINT || "http://127.0.0.1:9000";
 
 export const minioClient = new S3Client({
-  region: "us-east-1",
+  region: process.env.MINIO_REGION || "ap-south-1",
   endpoint,
   forcePathStyle: true,
   credentials: {
