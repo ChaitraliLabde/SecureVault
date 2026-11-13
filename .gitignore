@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.*
+!.env.example
+server/.env
+dist/
+.DS_Store
+.git/
+backups/
+server/storage/
+server/data/
+uploads/

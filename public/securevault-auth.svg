@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" fill="none">
+  <defs>
+    <linearGradient id="background" x1="66" y1="0" x2="546" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#123A68"/>
+      <stop offset=".48" stop-color="#0A2A50"/>
+      <stop offset="1" stop-color="#061A35"/>
+    </linearGradient>
+    <linearGradient id="window" x1="300" y1="78" x2="300" y2="504" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#88A8C6" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#5580A8" stop-opacity=".03"/>
+    </linearGradient>
+    <linearGradient id="bookTop" x1="112" y1="589" x2="465" y2="688" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#526A83"/>
+      <stop offset=".5" stop-color="#263E59"/>
+      <stop offset="1" stop-color="#152F4D"/>
+    </linearGradient>
+    <linearGradient id="bookPages" x1="203" y1="654" x2="205" y2="738" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D5D5CC"/>
+      <stop offset=".16" stop-color="#A9B0B0"/>
+      <stop offset=".78" stop-color="#707E8A"/>
+      <stop offset="1" stop-color="#3B536B"/>
+    </linearGradient>
+    <linearGradient id="bookCover" x1="103" y1="719" x2="489" y2="821" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#354D68"/>
+      <stop offset=".52" stop-color="#1B3654"/>
+      <stop offset="1" stop-color="#102B49"/>
+    </linearGradient>
+    <linearGradient id="gavelHead" x1="215" y1="360" x2="394" y2="462" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C6A878"/>
+      <stop offset=".2" stop-color="#876C4F"/>
+      <stop offset=".47" stop-color="#D2B78B"/>
+      <stop offset=".72" stop-color="#765B42"/>
+      <stop offset="1" stop-color="#B39165"/>
+    </linearGradient>
+    <linearGradient id="gavelHandle" x1="372" y1="414" x2="234" y2="584" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D8BD90"/>
+      <stop offset=".42" stop-color="#886947"/>
+      <stop offset=".72" stop-color="#C5A476"/>
+      <stop offset="1" stop-color="#634C37"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="matrix(0 500 -440 0 300 451)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7392AF" stop-opacity=".16"/>
+      <stop offset="1" stop-color="#7392AF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softShadow" x="38" y="312" width="540" height="540" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <filter id="windowBlur" x="0" y="0" width="600" height="545" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+    <pattern id="grain" width="96" height="96" patternUnits="userSpaceOnUse">
+      <circle cx="7" cy="13" r="1" fill="#D8E5F2" fill-opacity=".1"/>
+      <circle cx="52" cy="28" r=".8" fill="#D8E5F2" fill-opacity=".08"/>
+      <circle cx="83" cy="77" r="1" fill="#D8E5F2" fill-opacity=".07"/>
+      <circle cx="30" cy="68" r=".7" fill="#D8E5F2" fill-opacity=".1"/>
+    </pattern>
+  </defs>
+  <path fill="url(#background)" d="M0 0h600v900H0z"/>
+  <path fill="url(#glow)" d="M0 0h600v900H0z"/>
+  <g filter="url(#windowBlur)" opacity=".65">
+    <path fill="url(#window)" d="M61 74h478v408H61z"/>
+    <path fill="#B8CBDB" fill-opacity=".14" d="M74 87h198v177H74zM288 87h236v177H288zM74 278h198v190H74zM288 278h236v190H288z"/>
+    <path fill="#0B2442" fill-opacity=".72" d="M268 76h21v404h-21zM64 257h470v24H64z"/>
+    <path stroke="#B8CBDB" stroke-opacity=".18" stroke-width="8" d="M62 478 535 452"/>
+  </g>
+  <path fill="#071C36" fill-opacity=".42" d="M0 438h600v462H0z"/>
+  <ellipse cx="306" cy="752" fill="#020E1D" fill-opacity=".65" rx="242" ry="39" filter="url(#softShadow)"/>
+  <path fill="#0A203A" d="m71 752 386-32 72 35-397 38-61-41Z"/>
+  <path fill="url(#bookCover)" d="m111 710 353-34 50 26-355 38-48-30Z"/>
+  <path fill="#213A56" d="m111 710 48 30v91l-48-35v-86Z"/>
+  <path fill="#304762" d="m159 740 355-38v86l-355 43v-91Z"/>
+  <path fill="#8B98A1" fill-opacity=".48" d="m162 749 347-37v4l-347 39v-6Z"/>
+  <path fill="#142E4C" d="m91 624 364-36 53 28-366 39-51-31Z"/>
+  <path fill="url(#bookPages)" d="m142 654 366-38v82l-366 42v-86Z"/>
+  <path fill="#263E58" d="m91 624 51 30v86l-51-35v-81Z"/>
+  <path fill="#D1D4D0" fill-opacity=".55" d="m151 662 349-37v4l-349 38v-5Zm0 11 349-37v3l-349 39v-5Zm0 12 349-37v4l-349 38v-5Zm0 12 349-37v4l-349 38v-5Z"/>
+  <path fill="#536B83" d="m110 597 359-37 48 26-364 38-43-27Z"/>
+  <path fill="url(#bookTop)" d="m110 597 359-37 48 26-364 38-43-27Z"/>
+  <path stroke="#B8C4CD" stroke-opacity=".34" stroke-width="2" d="m123 599 343-35m-331 44 342-36"/>
+  <g transform="rotate(-42 305 469)">
+    <path fill="#07182D" fill-opacity=".72" d="M283 402h43v214h-43z" transform="translate(14 15)"/>
+    <path fill="url(#gavelHandle)" d="M285 392h40v210h-40z"/>
+    <path fill="#E0C79D" fill-opacity=".55" d="M289 400h6v190h-6z"/>
+    <path fill="#71563D" d="M278 442h54v17h-54zM278 555h54v18h-54z"/>
+    <path fill="#D0B185" fill-opacity=".55" d="M282 445h5v11h-5zm0 113h5v12h-5z"/>
+    <rect x="204" y="347" width="206" height="102" rx="39" fill="url(#gavelHead)"/>
+    <path fill="#594631" d="M215 365c0-10 8-18 18-18h149c14 0 25 11 25 25v13H215v-20Z"/>
+    <path fill="#D5BD96" fill-opacity=".65" d="M224 370c3-7 10-11 18-11h136c8 0 15 4 19 11H224Z"/>
+    <path fill="#4C3A2A" d="M204 409h206v17c0 13-11 23-24 23H229c-14 0-25-11-25-25v-15Z"/>
+    <path fill="#C3A47A" fill-opacity=".74" d="M214 414h186v5H214z"/>
+    <path stroke="#E3CCA5" stroke-opacity=".42" stroke-width="3" d="M239 387h133"/>
+  </g>
+  <path fill="#B5C8DC" fill-opacity=".17" d="M0 0h600v900H0z"/>
+  <path fill="url(#grain)" d="M0 0h600v900H0z"/>
+</svg>

@@ -1,0 +1,30 @@
+export default function Badge({ status }) {
+  const map = {
+    Active: "badge-green",
+    Inactive: "badge-gray",
+    Closed: "badge-red",
+    "On Hold": "badge-amber",
+    High: "badge-red",
+    Critical: "badge-red",
+    Medium: "badge-amber",
+    Low: "badge-blue",
+    Encrypted: "badge-blue",
+    Verified: "badge-green",
+    Enabled: "badge-green",
+    Mismatch: "badge-red",
+    Success: "badge-green",
+    Failure: "badge-red",
+    Upload: "badge-blue",
+    Update: "badge-amber",
+    View: "badge-gray",
+    Download: "badge-green",
+    Login: "badge-blue",
+    Logout: "badge-gray",
+    "Create Case": "badge-green",
+    "Update Case": "badge-amber",
+    "Integrity Check": "badge-blue",
+    "Generate Report": "badge-blue",
+    Denied: "badge-red",
+  };
+  return <span className={`badge ${map[status] || "badge-gray"}`}>{status}</span>;
+}
