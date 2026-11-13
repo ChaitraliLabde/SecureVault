@@ -2778,6 +2778,14 @@ checkBucket()
     });
   })
   .catch((error) => {
-    console.error("MinIO connection failed:", error.message);
-    process.exit(1);
-  });;
+  console.error("MinIO connection failed:", {
+    name: error.name,
+    message: error.message,
+    code: error.Code || error.code,
+    statusCode: error.$metadata?.httpStatusCode,
+    requestId: error.$metadata?.requestId,
+    extendedRequestId: error.$metadata?.extendedRequestId,
+  });
+
+  process.exit(1);
+});
