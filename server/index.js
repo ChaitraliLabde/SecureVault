@@ -28,14 +28,22 @@ import {
 import { can, PERMISSIONS, ROLES } from "./permissions.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET is missing. Set it in server/.env or the deployment environment.");
-}
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MFA_ENCRYPTION_SECRET = process.env.MFA_ENCRYPTION_KEY;
-if (!MFA_ENCRYPTION_SECRET) {
-  throw new Error("MFA_ENCRYPTION_KEY is missing. Set a stable secret in server/.env or the deployment environment.");
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET is missing from server/.env");
 }
+
+if (!MFA_ENCRYPTION_SECRET) {
+  throw new Error("MFA_ENCRYPTION_KEY is missing from server/.env");
+}
+
+if (JWT_SECRET === MFA_ENCRYPTION_SECRET) {
+  throw new Error("JWT_SECRET and MFA_ENCRYPTION_KEY must be different.");
+}
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 const MFA_ENCRYPTION_KEY = crypto.scryptSync(
   MFA_ENCRYPTION_SECRET,
   "securevault-mfa-encryption-v1",
