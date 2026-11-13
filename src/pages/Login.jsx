@@ -102,13 +102,7 @@ export default function Login() {
           <p className="auth-switch">
             New to SecureVault? <Link to="/signup">Create an account</Link>
           </p>
-          <div className="hint">
-            Demo accounts (password: <strong>password</strong>)
-            <br />
-            Officer: <strong>chaitrali</strong> · Supervisor: <strong>rahul</strong>
-            <br />
-            Admin: <strong>admin</strong> · Reviewer: <strong>neha</strong>
-          </div>
+        
           
           <div className="footer-copy">SecureVault © 2026 · SIH26190</div>
         </form>
