@@ -14,7 +14,7 @@ import {
   deleteFromMinio,
 } from "./minio.js";
 import {
-  canAccessCase,
+  canAccessCase as checkCaseAccess,
   effectiveRoleMatrix,
   enrichCase,
   enrichDoc,
@@ -88,6 +88,19 @@ app.use("/api/uploads", express.static(uploadsRoot));
 
 let db = await loadDb();
 db.feedback = db.feedback || [];
+function canAccessCase(
+  user,
+  c,
+  users = db.users,
+  caseReviewers = db.caseReviewers || []
+) {
+  return checkCaseAccess(
+    user,
+    c,
+    users,
+    caseReviewers
+  );
+}
 
 function persist() {
   return saveDb(db);
@@ -1051,6 +1064,158 @@ app.patch("/api/cases/:id/assignment", auth, requireRole("Supervisor", "Admin"),
   await persist();
   res.json({ case: enrichCase(item, db) });
 });
+
+// Assign Reviewer to a Case (Admin only)
+app.post(
+  "/api/cases/:id/reviewers",
+  auth,
+  requireRole("Admin"),
+  async (req, res) => {
+    const item = db.cases.find((c) => c.id === req.params.id);
+
+    if (!item) {
+      return res.status(404).json({ error: "Case not found" });
+    }
+
+    const reviewerId = req.body?.reviewerId;
+
+    // Validate Reviewer
+    const reviewer = db.users.find(
+      (user) =>
+        user.id === reviewerId &&
+        user.role === "Read-only Reviewer" &&
+        user.status === "Active"
+    );
+
+    if (!reviewer) {
+      return res.status(400).json({
+        error: "Select an active Reviewer",
+      });
+    }
+
+    // Initialize Reviewer assignments
+    db.caseReviewers = db.caseReviewers || [];
+
+    // Prevent duplicate assignments
+    const alreadyAssigned = db.caseReviewers.some(
+      (assignment) =>
+        assignment.caseId === item.id &&
+        assignment.reviewerId === reviewer.id
+    );
+
+    if (alreadyAssigned) {
+      return res.status(409).json({
+        error: "Reviewer is already assigned to this case",
+      });
+    }
+
+    // Create assignment
+    const assignment = {
+      id: crypto.randomUUID(),
+      caseId: item.id,
+      reviewerId: reviewer.id,
+      assignedBy: req.user.id,
+      assignedAt: now(),
+    };
+
+    db.caseReviewers.push(assignment);
+
+    // Audit log
+    audit(req, {
+      action: "Assign Reviewer",
+      caseId: item.id,
+      document: "—",
+      note: `Reviewer ${reviewer.name} assigned to case ${item.id}`,
+    });
+
+    await persist();
+
+    res.status(201).json({
+      message: "Reviewer assigned successfully",
+      assignment,
+    });
+  }
+);
+
+// Remove Reviewer from a Case (Admin only)
+app.delete(
+  "/api/cases/:id/reviewers/:reviewerId",
+  auth,
+  requireRole("Admin"),
+  async (req, res) => {
+    const item = db.cases.find(
+      (c) => c.id === req.params.id
+    );
+
+    if (!item) {
+      return res.status(404).json({
+        error: "Case not found",
+      });
+    }
+
+    db.caseReviewers = db.caseReviewers || [];
+
+    const index = db.caseReviewers.findIndex(
+      (assignment) =>
+        assignment.caseId === item.id &&
+        assignment.reviewerId === req.params.reviewerId
+    );
+
+    if (index === -1) {
+      return res.status(404).json({
+        error: "Reviewer assignment not found",
+      });
+    }
+
+    const removed = db.caseReviewers[index];
+
+    db.caseReviewers.splice(index, 1);
+
+    const reviewer = db.users.find(
+      (user) => user.id === removed.reviewerId
+    );
+
+    audit(req, {
+      action: "Remove Reviewer",
+      caseId: item.id,
+      document: "—",
+      note: `Reviewer ${reviewer?.name || removed.reviewerId} removed from case ${item.id}`,
+    });
+
+    await persist();
+
+    res.json({
+      message: "Reviewer removed successfully",
+    });
+  }
+);
+
+// Get Reviewers assigned to a Case (Admin only)
+app.get(
+  "/api/cases/:id/reviewers",
+  auth,
+  requireRole("Admin"),
+  (req, res) => {
+    const item = db.cases.find((c) => c.id === req.params.id);
+
+    if (!item) {
+      return res.status(404).json({ error: "Case not found" });
+    }
+
+    const reviewers = (db.caseReviewers || [])
+      .filter((assignment) => assignment.caseId === item.id)
+      .map((assignment) => ({
+        ...assignment,
+        user: publicUser(
+          db.users.find((u) => u.id === assignment.reviewerId),
+          db.roleMatrix
+        ),
+      }))
+      .filter((assignment) => assignment.user);
+
+    res.json({ reviewers });
+  }
+);
 
 app.post("/api/cases/:id/submit-review", auth, requireRole("Investigating Officer"), async (req, res) => {
   const item = db.cases.find((c) => c.id === req.params.id);
@@ -2428,6 +2593,24 @@ app.get("/api/officers", auth, (req, res) => {
   });
 });
 
+app.get("/api/reviewers", auth, requireRole("Admin"), (req, res) => {
+  res.json({
+    users: db.users
+      .filter(
+        (u) =>
+          u.status === "Active" &&
+          u.role === "Read-only Reviewer"
+      )
+      .map(({ id, name, email, role, status }) => ({
+        id,
+        name,
+        email,
+        role,
+        status,
+      })),
+  });
+});
+
 app.post("/api/users", auth, requirePerm("admin.users"), async (req, res) => {
   const { name, email, username, role, password, supervisorId } = req.body || {};
 
@@ -2778,14 +2961,6 @@ checkBucket()
     });
   })
   .catch((error) => {
-  console.error("MinIO connection failed:", {
-    name: error.name,
-    message: error.message,
-    code: error.Code || error.code,
-    statusCode: error.$metadata?.httpStatusCode,
-    requestId: error.$metadata?.requestId,
-    extendedRequestId: error.$metadata?.extendedRequestId,
-  });
-
-  process.exit(1);
-});
+    console.error("MinIO connection failed:", error.message);
+    process.exit(1);
+  });;
