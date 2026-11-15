@@ -42,6 +42,9 @@ export default function CaseDetails() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [officers, setOfficers] = useState([]);
+  const [reviewers, setReviewers] = useState([]);
+  const [assignedReviewers, setAssignedReviewers] = useState([]);
+  const [selectedReviewer, setSelectedReviewer] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
   const [submissionStatus, setSubmissionStatus] = useState("Pending Review");
   const [submissionNote, setSubmissionNote] = useState("");
@@ -63,10 +66,18 @@ export default function CaseDetails() {
       })
       .catch((e) => setError(e.message));
     if (canAssign) {
-      api("/api/officers")
-        .then((result) => setOfficers(result.users))
-        .catch((e) => setError(e.message));
-    }
+  api("/api/officers")
+    .then((result) => setOfficers(result.users))
+    .catch((e) => setError(e.message));
+
+  api("/api/reviewers")
+    .then((result) => setReviewers(result.users || []))
+    .catch((e) => setError(e.message));
+
+  api(`/api/cases/${id}/reviewers`)
+    .then((result) => setAssignedReviewers(result.reviewers || []))
+    .catch((e) => setError(e.message));
+}
   }, [id, canAssign]);
 
   const refreshCase = async () => {
@@ -75,6 +86,11 @@ export default function CaseDetails() {
     setAssignedTo(result.case.assignedTo);
     setPriority(result.case.priority || "Medium");
   };
+
+  const loadReviewerAssignments = async () => {
+  const result = await api(`/api/cases/${id}/reviewers`);
+  setAssignedReviewers(result.reviewers || []);
+};
 
   const submitWorkflow = async (endpoint, body, successMessage) => {
     setBusy(true);
@@ -111,6 +127,50 @@ export default function CaseDetails() {
       setBusy(false);
     }
   };
+  const assignReviewer = async () => {
+  if (!selectedReviewer) {
+    setError("Please select a Reviewer");
+    return;
+  }
+
+  setBusy(true);
+  setError("");
+
+  try {
+    await api(`/api/cases/${id}/reviewers`, {
+      method: "POST",
+      body: { reviewerId: selectedReviewer },
+    });
+
+    await loadReviewerAssignments();
+    setSelectedReviewer("");
+    notify("Reviewer assigned successfully");
+  } catch (e) {
+    setError(e.message);
+  } finally {
+    setBusy(false);
+  }
+};
+
+const removeReviewer = async (reviewerId) => {
+  if (!window.confirm("Remove this Reviewer from the case?")) return;
+
+  setBusy(true);
+  setError("");
+
+  try {
+    await api(`/api/cases/${id}/reviewers/${reviewerId}`, {
+      method: "DELETE",
+    });
+
+    await loadReviewerAssignments();
+    notify("Reviewer removed successfully");
+  } catch (e) {
+    setError(e.message);
+  } finally {
+    setBusy(false);
+  }
+};
 
   const savePriority = async () => {
     setBusy(true);
@@ -295,6 +355,97 @@ export default function CaseDetails() {
           </button>
         </section>
       ) : null}
+      
+      {user.role === "Admin" ? (
+  <section
+    className="card card-pad"
+    style={{ marginBottom: 16 }}
+    aria-label="Reviewer assignment"
+  >
+    <div className="card-title">Reviewer Management</div>
+
+    <p className="muted">
+      Assign Reviewers to access and review this case.
+    </p>
+
+    <div className="form-row">
+      <div className="field">
+        <label htmlFor="case-reviewer">Select Reviewer</label>
+
+        <select
+          id="case-reviewer"
+          className="select"
+          value={selectedReviewer}
+          onChange={(e) => setSelectedReviewer(e.target.value)}
+        >
+          <option value="">Select Reviewer</option>
+
+          {reviewers
+            .filter(
+              (r) =>
+                r.status === "Active" &&
+                !assignedReviewers.some(
+                  (a) => a.reviewerId === r.id
+                )
+            )
+            .map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name} ({r.email})
+              </option>
+            ))}
+        </select>
+      </div>
+
+      <div className="field" style={{ alignSelf: "end" }}>
+        <button
+          className="btn btn-primary"
+          disabled={busy || !selectedReviewer}
+          onClick={assignReviewer}
+        >
+          Assign Reviewer
+        </button>
+      </div>
+    </div>
+
+    <h4 style={{ marginTop: 20, marginBottom: 12 }}>
+      Assigned Reviewers
+    </h4>
+
+    {assignedReviewers.length === 0 ? (
+      <p className="muted">No Reviewers assigned yet.</p>
+    ) : (
+      assignedReviewers.map((assignment) => (
+        <div
+          key={assignment.id}
+          className="actions-row"
+          style={{
+            justifyContent: "space-between",
+            padding: "10px 0",
+            borderBottom: "1px solid var(--border)",
+          }}
+        >
+          <div>
+            <strong>{assignment.user.name}</strong>
+            <div className="muted" style={{ fontSize: 12 }}>
+              {assignment.user.email}
+            </div>
+          </div>
+
+          <button
+            className="btn btn-ghost"
+            style={{ color: "#dc2626" }}
+            disabled={busy}
+            onClick={() =>
+              removeReviewer(assignment.reviewerId)
+            }
+          >
+            <Trash2 size={16} /> Remove
+          </button>
+        </div>
+      ))
+    )}
+  </section>
+) : null}
 
       {canAssign ? (
         <section className="card card-pad" style={{ marginBottom: 16 }} aria-label="Case assignment">
