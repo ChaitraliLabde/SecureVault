@@ -121,3 +121,19 @@ ON verifications(document_id);
 
 CREATE INDEX IF NOT EXISTS idx_custody_document
 ON custody_events(document_id);
+
+-- CASE REVIEWER ASSIGNMENTS
+CREATE TABLE IF NOT EXISTS case_reviewers (
+    id TEXT PRIMARY KEY,
+    case_id TEXT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+    reviewer_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    assigned_by TEXT REFERENCES users(id) ON DELETE SET NULL,
+    assigned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT unique_case_reviewer UNIQUE (case_id, reviewer_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_case_reviewers_case
+ON case_reviewers(case_id);
+
+CREATE INDEX IF NOT EXISTS idx_case_reviewers_reviewer
+ON case_reviewers(reviewer_id);
