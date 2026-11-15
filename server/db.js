@@ -420,6 +420,9 @@ export async function loadDb() {
     const users = await client.query("SELECT data FROM users");
     const cases = await client.query("SELECT data FROM cases");
     const documents = await client.query("SELECT data FROM documents");
+    const caseReviewers = await client.query(
+    "SELECT id, case_id, reviewer_id, assigned_by, assigned_at FROM case_reviewers"
+    );
     const audits = await client.query(
       "SELECT data FROM audits ORDER BY audit_timestamp"
     );
@@ -448,6 +451,7 @@ export async function loadDb() {
     let db = {
       users: users.rows.map((row) => row.data),
       cases: cases.rows.map((row) => row.data),
+      caseReviewers: caseReviewers.rows,
       documents: documents.rows.map((row) => row.data),
       audits: audits.rows.map((row) => row.data),
       resetTokens: resetTokens.rows.map((row) => row.data),
@@ -554,6 +558,22 @@ export function saveDb(db) {
         ]),
         ["email", "username", "role", "status", "data"]
       );
+
+            
+      // CASE REVIEWERS
+await bulkUpsert(
+  client,
+  "case_reviewers",
+  ["id", "case_id", "reviewer_id", "assigned_by", "assigned_at"],
+  (db.caseReviewers || []).map(item => [
+    item.id,
+    item.caseId || item.case_id,
+    item.reviewerId || item.reviewer_id,
+    item.assignedBy || item.assigned_by || null,
+    dateValue(item.assignedAt || item.assigned_at)
+  ]),
+  ["case_id", "reviewer_id", "assigned_by", "assigned_at"]
+);
 
       // CASES
       await bulkUpsert(
@@ -732,6 +752,7 @@ export function saveDb(db) {
       await deleteMissing("verifications", "id", db.verifications || []);
       await deleteMissing("custody_events", "id", db.custodyEvents || []);
       await deleteMissing("documents", "id", db.documents || []);
+      await deleteMissing("case_reviewers", "id", db.caseReviewers || []);
       await deleteMissing("feedback", "id", db.feedback || []);
       await deleteMissing("reset_tokens", "id", db.resetTokens || []);
       await deleteMissing("notifications", "id", db.notifications || []);
@@ -862,7 +883,12 @@ export function enrichDoc(d, db) {
   };
 }
 
-export function canAccessCase(user, c, users = []) {
+export function canAccessCase(
+  user,
+  c,
+  users = [],
+  caseReviewers = []
+) {
   if (!user || !c) return false;
 
   // Admin can access every case
@@ -883,8 +909,17 @@ export function canAccessCase(user, c, users = []) {
     );
   }
 
-  // Investigating Officers and other roles
-  // can access only cases assigned to themselves
-  return c.assignedTo === user.id;
+  // Read-only Reviewer can access only
+  // cases explicitly assigned to them
+  if (user.role === "Read-only Reviewer") {
+  return caseReviewers.some(
+    (assignment) =>
+      (assignment.caseId || assignment.case_id) === c.id &&
+      (assignment.reviewerId || assignment.reviewer_id) === user.id
+  );
 }
 
+  // Investigating Officers can access
+  // only cases assigned to themselves
+  return c.assignedTo === user.id;
+}
